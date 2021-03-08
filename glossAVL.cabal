@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 53ae30af3bd5794055b3f8da8d3deed51c5c6a2e6f8844d19c2dc71a5c7135bc
+-- hash: e29f72a64524b0292cad14bfc73337942809012479940faf03dd28f8d1afa701
 
 name:           glossAVL
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      AVLTree
       Lib
   other-modules:
       Paths_glossAVL
