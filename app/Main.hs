@@ -1,32 +1,40 @@
 module Main where
 
--- import Lib
+import Util
+import AVLTree
 import Graphics.Gloss
 import Graphics.Gloss.Data.ViewPort
-import Graphics.Gloss.Interface.Environment
+-- import Graphics.Gloss.Interface.IO.Simulate
 
-fps :: Int
-fps = 60
-
-type ScreenSize = (Int, Int)
-type Text = (ScreenSize, Int)
-
-initNum :: IO Text
-initNum = do
-  size <- getScreenSize -- didn't really use it but now I know how to do it
-  return (size, 0)
+type Model a = (Tree a, [Command])
 
 main :: IO ()
 main = do
-  num <- initNum
-  simulate FullScreen white fps num drawNum updateNum
+  model <- initModel
+  -- simulateIO FullScreen white 60 model drawModel updateModel
+  simulate FullScreen white 60 model drawModel updateModel
 
-drawNum :: Text -> Picture
-drawNum (_,n) = pictures [circleSolid 200,
-                          translate (-50.0) (-25.0) $ scale 0.5 0.5 $ color white (text $ show n)]
+initModel :: IO (Model a)
+initModel = do
+  commands <- fmap (toCmdList . lines) getContents
+  return (empty,commands)
 
-updateNum :: ViewPort -> Float -> Text -> Text
-updateNum _ _ (size,n) = (size,n+1)
+{-
+drawModel :: Model a -> IO Picture
+drawModel (_,[])         = do return $ text "END."
+drawModel (_,(Add a:xs)) = do return $ text ("+" ++ show a)
+drawModel (_,(Rem a:xs)) = do return $ text ("-" ++ show a)
 
--- window = InWindow "GlossTeste" (800,600) (0,0)
--- teste = circleSolid 100
+updateModel :: ViewPort -> Float -> Model a -> IO (Model a)
+updateModel _ _ (tree,[])     = do return (tree,[])
+updateModel _ _ (tree,(x:xs)) = do return (tree,xs)
+-}
+
+drawModel :: Model a -> Picture
+drawModel (_,[])         = text "END."
+drawModel (_,(Add a:xs)) = text ("+" ++ show a)
+drawModel (_,(Rem a:xs)) = text ("-" ++ show a)
+
+updateModel :: ViewPort -> Float -> Model a -> Model a
+updateModel _ _ (tree,[])     = (tree,[])
+updateModel _ _ (tree,(x:xs)) = (tree,xs)
