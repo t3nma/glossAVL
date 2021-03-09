@@ -1,14 +1,20 @@
 {-
+
+  AVLTree.hs
+  ----------
+
   Implementation of an AVL Tree data structure.
-  This version stores each node's height in the node itself.
+  This version stores each node's height in the
+  nodes themselves.
+
 -}
 
-module AVLTree (
-  Tree,
-  empty,
-  find,
-  insert,
-  remove
+module AVLTree
+  ( Tree,
+    empty,
+    find,
+    insert,
+    remove
   ) where
 
 data Tree a
@@ -16,21 +22,21 @@ data Tree a
   | Node a Int (Tree a) (Tree a) -- (key, height, left, right)
   deriving Show
 
--- constructor
+-- Tree constructor.
 empty :: Tree a
 empty = Empty
 
--- node height
+-- Retrieve some node's height.
 height :: Tree a -> Int
 height Empty = 0
 height (Node _ h _ _) = h
 
--- height difference ("desvio")
+-- Retrieve some node's subtree height difference.
 hDiff :: Tree a -> Int
 hDiff Empty = 0
 hDiff (Node _ _ left right) = height left - height right
 
--- node retrieval
+-- Retrieve some node with the given key.
 find :: Ord a => a -> Tree a -> Maybe (Tree a)
 find a tree = worker tree
   where
@@ -41,31 +47,31 @@ find a tree = worker tree
           LT -> worker left
           GT -> worker right
 
--- single right rotation
+-- Perform a single right rotation.
 rRotate :: Tree a -> Tree a
-rRotate (Node a h (Node a' h' d1 d2) d3) = Node a' 0 d1 (Node a 0 d2 d3)
+rRotate (Node a h (Node a' h' d1 d2) d3) = Node a' 0 d1 (Node a 0 d2 d3) -- heights will be updated later
 rRotate tree = tree
 
--- single left rotation
+-- Perform a single left rotation.
 lRotate :: Tree a -> Tree a
-lRotate (Node a h d1 (Node a' h' d2 d3)) = Node a' 0 (Node a 0 d1 d2) d3
+lRotate (Node a h d1 (Node a' h' d2 d3)) = Node a' 0 (Node a 0 d1 d2) d3 -- heights will be updated later
 lRotate tree = tree
 
--- right-balance a (sub)tree with height diff 2
+-- Perform a compound right rotation.
 rFix :: Tree a -> Tree a
 rFix (Node a h d1 d2)
   | hDiff d1 == -1 = rRotate (Node a h (lRotate d1) d2)
   | otherwise      = rRotate (Node a h d1 d2)
 rFix tree = tree
 
--- left-balance a (sub)tree with height diff -2
+-- Perform a compound left rotation.
 lFix :: Tree a -> Tree a
 lFix (Node a h d1 d2)
   | hDiff d2 == 1 = lRotate (Node a h d1 (rRotate d2))
   | otherwise     = lRotate (Node a h d1 d2)
 lFix tree = tree
 
--- balance tree with |height diff| = 2
+-- Perform tree balance.
 fix :: Tree a -> Tree a
 fix tree
   | d == 2    = hUpdate $ rFix tree
@@ -74,7 +80,7 @@ fix tree
   where
     d = hDiff tree
 
--- update (sub)tree height
+-- Update the height values of some given node's subtree.
 hUpdate :: Tree a -> Tree a
 hUpdate Empty = Empty
 hUpdate (Node a h left right) = Node a h' left' right'
@@ -83,7 +89,7 @@ hUpdate (Node a h left right) = Node a h' left' right'
     right' = hUpdate right
     h'     = max (height left') (height right') + 1
 
--- value insertion
+-- Insert a node with the given key in the tree.
 insert :: Ord a => a -> Tree a -> Tree a
 insert a Empty = Node a 1 Empty Empty
 insert a (Node a' h' left right)
@@ -97,7 +103,7 @@ insert a (Node a' h' left right)
     hl     = max (height left') (height right) + 1
     hr     = max (height left) (height right') + 1
 
--- value removal
+-- Remove a node with the given key from the tree.
 remove :: Ord a => a -> Tree a -> Tree a
 remove a Empty = Empty
 remove a (Node a' h left right)
@@ -116,7 +122,8 @@ remove a (Node a' h left right)
     hl     = max (height left') (height right) + 1
     hr     = max (height left) (height right') + 1
 
--- maximum node retrieval
+-- Retrieve the node with maximum key from some
+-- given node's subtree.
 findMax :: Tree a -> Maybe (Tree a)
 findMax Empty = Nothing
 findMax (Node a h left Empty) = Just $ Node a h left Empty
