@@ -1,2 +1,6 @@
 .stack-work/
 *~
+app/Main
+*.hi
+*.o
+*.in
