@@ -26,9 +26,9 @@ height Empty = 0
 height (Node _ h _ _) = h
 
 -- height difference ("desvio")
-h_diff :: Tree a -> Int
-h_diff Empty = 0
-h_diff (Node _ _ left right) = height left - height right
+hDiff :: Tree a -> Int
+hDiff Empty = 0
+hDiff (Node _ _ left right) = height left - height right
 
 -- node retrieval
 find :: Ord a => a -> Tree a -> Maybe (Tree a)
@@ -42,45 +42,45 @@ find a tree = worker tree
           GT -> worker right
 
 -- single right rotation
-r_rotate :: Tree a -> Tree a
-r_rotate (Node a h (Node a' h' d1 d2) d3) = Node a' 0 d1 (Node a 0 d2 d3)
-r_rotate tree = tree
+rRotate :: Tree a -> Tree a
+rRotate (Node a h (Node a' h' d1 d2) d3) = Node a' 0 d1 (Node a 0 d2 d3)
+rRotate tree = tree
 
 -- single left rotation
-l_rotate :: Tree a -> Tree a
-l_rotate (Node a h d1 (Node a' h' d2 d3)) = Node a' 0 (Node a 0 d1 d2) d3
-l_rotate tree = tree
+lRotate :: Tree a -> Tree a
+lRotate (Node a h d1 (Node a' h' d2 d3)) = Node a' 0 (Node a 0 d1 d2) d3
+lRotate tree = tree
 
 -- right-balance a (sub)tree with height diff 2
-r_fix :: Tree a -> Tree a
-r_fix (Node a h d1 d2)
-  | h_diff d1 == -1 = r_rotate (Node a h (l_rotate d1) d2)
-  | otherwise       = r_rotate (Node a h d1 d2)
-r_fix tree = tree
+rFix :: Tree a -> Tree a
+rFix (Node a h d1 d2)
+  | hDiff d1 == -1 = rRotate (Node a h (lRotate d1) d2)
+  | otherwise      = rRotate (Node a h d1 d2)
+rFix tree = tree
 
 -- left-balance a (sub)tree with height diff -2
-l_fix :: Tree a -> Tree a
-l_fix (Node a h d1 d2)
-  | h_diff d2 == 1 = l_rotate (Node a h d1 (r_rotate d2))
-  | otherwise      = l_rotate (Node a h d1 d2)
-l_fix tree = tree
+lFix :: Tree a -> Tree a
+lFix (Node a h d1 d2)
+  | hDiff d2 == 1 = lRotate (Node a h d1 (rRotate d2))
+  | otherwise     = lRotate (Node a h d1 d2)
+lFix tree = tree
 
 -- balance tree with |height diff| = 2
 fix :: Tree a -> Tree a
 fix tree
-  | d == 2    = h_update $ r_fix tree
-  | d == -2   = h_update $ l_fix tree
+  | d == 2    = hUpdate $ rFix tree
+  | d == -2   = hUpdate $ lFix tree
   | otherwise = tree
   where
-    d = h_diff tree
+    d = hDiff tree
 
 -- update (sub)tree height
-h_update :: Tree a -> Tree a
-h_update Empty = Empty
-h_update (Node a h left right) = Node a h' left' right'
+hUpdate :: Tree a -> Tree a
+hUpdate Empty = Empty
+hUpdate (Node a h left right) = Node a h' left' right'
   where
-    left'  = h_update left
-    right' = h_update right
+    left'  = hUpdate left
+    right' = hUpdate right
     h'     = max (height left') (height right') + 1
 
 -- value insertion
@@ -108,16 +108,16 @@ remove a (Node a' h left right)
   where
     remove' left Empty  = left
     remove' Empty right = right
-    remove' left right  = h_update $ Node a_max h_max (remove a_max left) right
+    remove' left right  = hUpdate $ Node a_max h_max (remove a_max left) right
       where
-        Just (Node a_max h_max _ _) = find_max left
+        Just (Node a_max h_max _ _) = findMax left
     left'  = remove a left
     right' = remove a right
     hl     = max (height left') (height right) + 1
     hr     = max (height left) (height right') + 1
 
 -- maximum node retrieval
-find_max :: Tree a -> Maybe (Tree a)
-find_max Empty = Nothing
-find_max (Node a h left Empty)  = Just $ Node a h left Empty
-find_max (Node _ _ _ right)     = find_max right
+findMax :: Tree a -> Maybe (Tree a)
+findMax Empty = Nothing
+findMax (Node a h left Empty) = Just $ Node a h left Empty
+findMax (Node _ _ _ right)    = findMax right
