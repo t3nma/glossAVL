@@ -1,11 +1,11 @@
 module Main where
 
+import Util
 import Command
 import AVLTree
 import Graphics.Gloss
 import Graphics.Gloss.Data.ViewPort
 import Data.Maybe (catMaybes)
-import qualified System.IO.Strict as SIO (getContents)
 
 type Model a = (Tree a, [Command a])
 
@@ -16,7 +16,7 @@ main = do
 
 initModel :: (Read a, Show a, Ord a) => IO (Model a)
 initModel = do
-  commands <- fmap (catMaybes . toCmdList . lines) SIO.getContents
+  commands <- fmap (catMaybes . toCmdList) readLoop
   return (empty,commands)
 
 drawModel :: (Show a) => Model a -> Picture
