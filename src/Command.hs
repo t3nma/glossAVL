@@ -26,10 +26,12 @@
 module Command
   ( Command (Add, Rem),
     toCmd,
-    toCmdList
+    toCmdList,
+    doCmd
   ) where
 
 import Text.Read (readMaybe)
+import AVLTree (Tree, insert, remove)
 
 data Command a = Add a | Rem a
   deriving Show
@@ -55,3 +57,9 @@ toCmd str = parse str
 toCmdList :: (Read a, Show a, Ord a) => [String] -> [Maybe (Command a)]
 toCmdList []     = []
 toCmdList (x:xs) = toCmd x:toCmdList xs
+
+-- Perform some command's corresponding operation
+-- in a given AVL Tree.
+doCmd :: Ord a => Command a -> Tree a -> Tree a
+doCmd (Add a) tree = insert a tree
+doCmd (Rem a) tree = remove a tree

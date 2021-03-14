@@ -10,7 +10,7 @@
 -}
 
 module AVLTree
-  ( Tree,
+  ( Tree (Empty, Node), -- export all just to avoid the need to make getters()
     empty,
     find,
     insert,
