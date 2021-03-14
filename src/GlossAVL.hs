@@ -3,6 +3,17 @@
   GlossAVL.hs
   -----------
 
+  AVL Tree visualization with Gloss.
+
+  The layout being used places the nodes in the
+  space according to their width (size of the subtree)
+  and parent node location.
+
+  Any type instantiating Show can be used in the
+  model of this visualization. However, node and
+  text sizes were choosed for trees storing Int's.
+  All the layout constants can be changed.
+
 -}
 
 module GlossAVL
@@ -26,24 +37,24 @@ type Model a = (Tree a,[Command a])
 ---
 
 screenSize :: (Int,Int)
-screenSize = (800,600)
+screenSize = (1000,800)
 
 window = InWindow "GlossAVL" screenSize (0,0)
 
 widthFactor :: Float
 widthFactor = 40
 
-heightFactor :: Float
-heightFactor = 50
+levelSpacing :: Float
+levelSpacing = 50
 
 topMargin :: Float
 topMargin = 10
 
 nodeRadius :: Float
-nodeRadius = 15
+nodeRadius = 20
 
 leafSize :: Float
-leafSize = 10
+leafSize = 12
 
 ---
 --- Picture utils
@@ -63,6 +74,17 @@ rectangleSolid_ = rectangleSolid leafSize leafSize
 
 leafAt :: Point -> Picture
 leafAt (x,y) = translate x y $ rectangleSolid_
+
+nodeLink :: Point -> Point -> Picture
+nodeLink p1 p2 = line [p1,p2]
+
+---
+--- Auxiliary
+---
+
+treeSize :: Tree a -> Int
+treeSize Empty = 0
+treeSize (Node _ _ l r) = 1 + treeSize l + treeSize r
 
 ---
 --- Model functions
@@ -84,16 +106,14 @@ drawTree _ Empty = []
 drawTree pt tree = worker pt tree []
   where
     worker pt Empty pics                    = leafAt pt:pics
-    worker (x,y) (Node k h left right) pics = worker ptLeft left pics'
+    worker (x,y) (Node k h left right) pics = edge1:edge2:worker ptLeft left pics'
       where
         width   = fromIntegral $ treeSize (Node k h left right) :: Float
-        ptLeft  = (x-width*widthFactor/2,y-heightFactor)
-        ptRight = (x+width*widthFactor/2,y-heightFactor)
+        ptLeft  = (x-width*widthFactor/2,y-levelSpacing)
+        ptRight = (x+width*widthFactor/2,y-levelSpacing)
         pics'   = nodeAt k (x,y):worker ptRight right pics
-
-treeSize :: Tree a -> Int
-treeSize Empty = 0
-treeSize (Node _ _ l r) = 1 + treeSize l + treeSize r
+        edge1   = nodeLink (x,y) ptLeft
+        edge2   = nodeLink (x,y) ptRight
 
 updateModel :: Ord a => ViewPort -> Float -> Model a -> Model a
 updateModel _ _ (tree,[])     = (tree,[])

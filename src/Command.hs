@@ -34,7 +34,10 @@ import Text.Read (readMaybe)
 import AVLTree (Tree, insert, remove)
 
 data Command a = Add a | Rem a
-  deriving Show
+
+instance (Show a) => Show (Command a) where
+  show (Add a) = "+" ++ show a
+  show (Rem a) = "-" ++ show a
 
 -- Command parser.
 parse :: (Read a, Show a, Ord a) => String -> Maybe (Command a)
