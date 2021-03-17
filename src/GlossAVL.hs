@@ -43,7 +43,7 @@ screenSize = (1000,800)
 window = InWindow "GlossAVL" screenSize (0,0)
 
 widthFactor :: Float
-widthFactor = 30
+widthFactor = 35
 
 levelSpacing :: Float
 levelSpacing = 65
@@ -53,6 +53,9 @@ nodeRadius = 20
 
 leafSize :: Float
 leafSize = 12
+
+rootOrig :: Point
+rootOrig = (0,800/4)
 
 ---
 --- Picture utils
@@ -64,7 +67,7 @@ circleSolid_ = circleSolid nodeRadius
 nodeAt :: Show a => a -> Point -> Bool-> Picture
 nodeAt k (x,y) test = translate x y $ pictures node
   where
-    c = if test then cyan else yellow -- cyan acts as the highlight of an insertion command
+    c    = if test then cyan else yellow -- cyan acts as the highlight of an insertion command
     node = [color c $ circleSolid_,
             translate (-8) (-7) $ scale 0.1 0.1 (text $ show k)]
 
@@ -77,17 +80,30 @@ leafAt (x,y) = translate x y $ rectangleSolid_
 nodeLink :: Point -> Point -> Picture
 nodeLink p1 p2 = line [p1,p2]
 
+cmdLegend :: Show a => Maybe (Command a) -> Picture
+cmdLegend cmd = translate (-30) y' $ scale 0.2 0.2 $ text (cmdText cmd)
+  where
+    (_,y) = rootOrig
+    y'    = y+nodeRadius+20 -- 20px above root node
+
 ---
 --- Auxiliary
 ---
 
 treeSize :: Tree a -> Int
-treeSize Empty = 0
 treeSize (Node _ _ l r) = 1 + treeSize l + treeSize r
+treeSize _              = 0
 
 cmdText :: Show a => Maybe (Command a) -> String
 cmdText Nothing  = " "
 cmdText (Just a) = show a
+
+childOrig :: Tree a -> Point -> (Point,Point)
+childOrig node (x,y) = (ptLeft,ptRight)
+  where
+    width   = fromIntegral $ treeSize node :: Float
+    ptLeft  = (x-width*widthFactor/2,y-levelSpacing)
+    ptRight = (x+width*widthFactor/2,y-levelSpacing)
 
 ---
 --- Model functions
@@ -101,25 +117,21 @@ initModel = do
 drawModel :: (Ord a, Show a) => Model a -> Picture
 drawModel (tree,_,prev) = pictures $ cmdPic:treePic
   where
-    h       = fromIntegral (snd screenSize) :: Float
-    orig    = (0,h/4)
-    cmdPic  = translate (-30) (h/4+nodeRadius+20) $ scale 0.2 0.2 $ text (cmdText prev)
-    treePic = drawTree orig tree prev
+    cmdPic  = cmdLegend prev
+    treePic = drawTree rootOrig tree prev
 
 drawTree :: (Ord a, Show a) => Point -> Tree a -> Maybe (Command a) -> [Picture]
-drawTree _ Empty _    = []
-drawTree pt tree prev = worker pt tree prev []
+drawTree _ Empty _      = []
+drawTree orig tree prev = worker orig tree prev []
   where
-    worker pt Empty _ pics                             = leafAt pt:pics
-    worker (x,y) (Node k h left right) (Just cmd) pics = edge1:edge2:worker ptLeft left prev pics'
+    worker pt Empty _ pics                          = leafAt pt:pics
+    worker pt (Node k h left right) (Just cmd) pics = edge1:edge2:worker ptLeft left prev pics'
       where
-        width    = fromIntegral $ treeSize (Node k h left right) :: Float
-        ptLeft   = (x-width*widthFactor/2,y-levelSpacing)
-        ptRight  = (x+width*widthFactor/2,y-levelSpacing)
-        isTarget = k == cmdKey cmd
-        pics'    = nodeAt k (x,y) isTarget:worker ptRight right prev pics
-        edge1    = nodeLink (x,y) ptLeft
-        edge2    = nodeLink (x,y) ptRight
+        (ptLeft,ptRight) = childOrig (Node k h left right) pt
+        edge1            = nodeLink pt ptLeft
+        edge2            = nodeLink pt ptRight
+        curNode          = nodeAt k pt (k == cmdKey cmd)
+        pics'            = curNode:worker ptRight right prev pics
 
 updateModel :: Ord a => ViewPort -> Float -> Model a -> Model a
 updateModel _ _ (tree,[],prev)  = (tree,[],prev)
