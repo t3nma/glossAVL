@@ -2,7 +2,7 @@
 
 Visualization of AVL Trees using Gloss.
 
-[[URL OF THE SIMULATION GIF HERE]]
+![GlossAVL GIF](https://media.giphy.com/media/UbvVZeD3ESd44O8eN3/giphy.gif)
 
 ## Example
 
