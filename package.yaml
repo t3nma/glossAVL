@@ -1,10 +1,10 @@
 name:                glossAVL
 version:             0.1.0.0
-github:              "githubuser/glossAVL"
+github:              "t3m,a/glossAVL"
 license:             BSD3
-author:              "Author name here"
+author:              "Bruno Casteleiro"
 maintainer:          "example@example.com"
-copyright:           "2021 Author name here"
+copyright:           "2021 Bruno Casteleiro"
 
 extra-source-files:
 - README.md
