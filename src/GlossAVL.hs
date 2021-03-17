@@ -25,12 +25,13 @@ module GlossAVL
 import Util
 import Command
 import AVLTree
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, fromJust)
 import Graphics.Gloss
 import Graphics.Gloss.Data.ViewPort
 import Graphics.Gloss.Interface.IO.Simulate
 
-type Model a = (Tree a,[Command a])
+-- State = (AVL Tree, Input commands, Previous applied command)
+type Model a = (Tree a,[Command a],Maybe (Command a))
 
 ---
 --- Constants
@@ -42,13 +43,10 @@ screenSize = (1000,800)
 window = InWindow "GlossAVL" screenSize (0,0)
 
 widthFactor :: Float
-widthFactor = 40
+widthFactor = 30
 
 levelSpacing :: Float
-levelSpacing = 50
-
-topMargin :: Float
-topMargin = 10
+levelSpacing = 65
 
 nodeRadius :: Float
 nodeRadius = 20
@@ -63,11 +61,12 @@ leafSize = 12
 circleSolid_ :: Picture
 circleSolid_ = circleSolid nodeRadius
 
-nodeAt :: Show a => a -> Point -> Picture
-nodeAt txt (x,y) = translate x y $ pictures node
+nodeAt :: Show a => a -> Point -> Bool-> Picture
+nodeAt k (x,y) test = translate x y $ pictures node
   where
-    node = [color yellow $ circleSolid_,
-            translate (-8) (-7) $ scale 0.1 0.1 (text $ show txt)]
+    c = if test then cyan else yellow -- cyan acts as the highlight of an insertion command
+    node = [color c $ circleSolid_,
+            translate (-8) (-7) $ scale 0.1 0.1 (text $ show k)]
 
 rectangleSolid_ :: Picture
 rectangleSolid_ = rectangleSolid leafSize leafSize
@@ -86,6 +85,10 @@ treeSize :: Tree a -> Int
 treeSize Empty = 0
 treeSize (Node _ _ l r) = 1 + treeSize l + treeSize r
 
+cmdText :: Show a => Maybe (Command a) -> String
+cmdText Nothing  = " "
+cmdText (Just a) = show a
+
 ---
 --- Model functions
 ---
@@ -93,31 +96,34 @@ treeSize (Node _ _ l r) = 1 + treeSize l + treeSize r
 initModel :: (Read a, Show a, Ord a) => IO (Model a)
 initModel = do
   commands <- fmap (catMaybes . toCmdList) readLoop
-  return (empty,commands)
+  return (empty,commands,Nothing)
 
-drawModel :: Show a => Model a -> Picture
-drawModel (tree,_) = pictures $ drawTree orig tree
+drawModel :: (Ord a, Show a) => Model a -> Picture
+drawModel (tree,_,prev) = pictures $ cmdPic:treePic
   where
-    h    = fromIntegral (snd screenSize) :: Float
-    orig = (0,h/2-nodeRadius-topMargin)
+    h       = fromIntegral (snd screenSize) :: Float
+    orig    = (0,h/4)
+    cmdPic  = translate (-30) (h/4+nodeRadius+20) $ scale 0.2 0.2 $ text (cmdText prev)
+    treePic = drawTree orig tree prev
 
-drawTree :: Show a => Point -> Tree a -> [Picture]
-drawTree _ Empty = []
-drawTree pt tree = worker pt tree []
+drawTree :: (Ord a, Show a) => Point -> Tree a -> Maybe (Command a) -> [Picture]
+drawTree _ Empty _    = []
+drawTree pt tree prev = worker pt tree prev []
   where
-    worker pt Empty pics                    = leafAt pt:pics
-    worker (x,y) (Node k h left right) pics = edge1:edge2:worker ptLeft left pics'
+    worker pt Empty _ pics                             = leafAt pt:pics
+    worker (x,y) (Node k h left right) (Just cmd) pics = edge1:edge2:worker ptLeft left prev pics'
       where
-        width   = fromIntegral $ treeSize (Node k h left right) :: Float
-        ptLeft  = (x-width*widthFactor/2,y-levelSpacing)
-        ptRight = (x+width*widthFactor/2,y-levelSpacing)
-        pics'   = nodeAt k (x,y):worker ptRight right pics
-        edge1   = nodeLink (x,y) ptLeft
-        edge2   = nodeLink (x,y) ptRight
+        width    = fromIntegral $ treeSize (Node k h left right) :: Float
+        ptLeft   = (x-width*widthFactor/2,y-levelSpacing)
+        ptRight  = (x+width*widthFactor/2,y-levelSpacing)
+        isTarget = k == cmdKey cmd
+        pics'    = nodeAt k (x,y) isTarget:worker ptRight right prev pics
+        edge1    = nodeLink (x,y) ptLeft
+        edge2    = nodeLink (x,y) ptRight
 
 updateModel :: Ord a => ViewPort -> Float -> Model a -> Model a
-updateModel _ _ (tree,[])     = (tree,[])
-updateModel _ _ (tree,(x:xs)) = (doCmd x tree,xs)
+updateModel _ _ (tree,[],prev)  = (tree,[],prev)
+updateModel _ _ (tree,(x:xs),_) = (doCmd x tree,xs,Just x)
 
 -- Main.
 run :: (Read a, Show a, Ord a) => Model a -> IO ()

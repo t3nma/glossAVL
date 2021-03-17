@@ -27,7 +27,8 @@ module Command
   ( Command (Add, Rem),
     toCmd,
     toCmdList,
-    doCmd
+    doCmd,
+    cmdKey
   ) where
 
 import Text.Read (readMaybe)
@@ -66,3 +67,8 @@ toCmdList (x:xs) = toCmd x:toCmdList xs
 doCmd :: Ord a => Command a -> Tree a -> Tree a
 doCmd (Add a) tree = insert a tree
 doCmd (Rem a) tree = remove a tree
+
+-- Retrieve key of some command
+cmdKey :: Command a -> a
+cmdKey (Add a) = a
+cmdKey (Rem a) = a
