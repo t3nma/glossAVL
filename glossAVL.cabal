@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ac7e5eb62755eea742497c6f6ce589cdcff173cb5181cb96d4a237801f2f0fdb
+-- hash: 8fdb30ce1dc03581ee20715f785f6bdba17b1989f776f9079c06a92b15d87e1b
 
 name:           glossAVL
 version:        0.1.0.0
@@ -46,20 +46,6 @@ executable glossAVL-exe
       Paths_glossAVL
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >=4.7 && <5
-    , gloss
-    , glossAVL
-  default-language: Haskell2010
-
-test-suite glossAVL-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Paths_glossAVL
-  hs-source-dirs:
-      test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5

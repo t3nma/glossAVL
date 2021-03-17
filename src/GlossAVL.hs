@@ -7,12 +7,17 @@
 
   The layout being used places the nodes in the
   space according to their width (size of the subtree)
-  and parent node location.
+  and parent node location. Therefore, there's no
+  control of whether the tree is getting out of
+  the window bounds. You're expected to manually
+  control the viewport in such cases.
 
   Any type instantiating Show can be used in the
   model of this visualization. However, node and
-  text sizes were choosed for trees storing Int's.
-  All the layout constants can be changed.
+  text sizes were selected for trees storing Int's
+  up to 4 digits.
+
+  All the layout constants can be tuned.
 
 -}
 
@@ -43,16 +48,28 @@ screenSize = (1000,800)
 window = InWindow "GlossAVL" screenSize (0,0)
 
 widthFactor :: Float
-widthFactor = 35
+widthFactor = 30
 
 levelSpacing :: Float
 levelSpacing = 65
 
 nodeRadius :: Float
-nodeRadius = 20
+nodeRadius = 25
+
+nodeThickness :: Float
+nodeThickness = 1
+
+nodeColor :: Color
+nodeColor = yellow
+
+nodeActiveColor :: Color
+nodeActiveColor = cyan
 
 leafSize :: Float
-leafSize = 12
+leafSize = 15
+
+leafColor :: Color
+leafColor = black
 
 rootOrig :: Point
 rootOrig = (0,800/4)
@@ -61,27 +78,22 @@ rootOrig = (0,800/4)
 --- Picture utils
 ---
 
-circleSolid_ :: Picture
-circleSolid_ = circleSolid nodeRadius
-
-nodeAt :: Show a => a -> Point -> Bool-> Picture
-nodeAt k (x,y) test = translate x y $ pictures node
+treeNodeAt :: Show a => a -> Point -> Bool-> Picture
+treeNodeAt k (x,y) isTarget = translate x y $ pictures node
   where
-    c    = if test then cyan else yellow -- cyan acts as the highlight of an insertion command
-    node = [color c $ circleSolid_,
-            translate (-8) (-7) $ scale 0.1 0.1 (text $ show k)]
-
-rectangleSolid_ :: Picture
-rectangleSolid_ = rectangleSolid leafSize leafSize
+    c    = if isTarget then nodeActiveColor else nodeColor -- highlight of a performed command
+    node = [circleSolid (nodeRadius+nodeThickness),
+            color c $ circleSolid nodeRadius,
+            translate (-12) (-7) $ scale 0.1 0.1 (text $ show k)]
 
 leafAt :: Point -> Picture
-leafAt (x,y) = translate x y $ rectangleSolid_
+leafAt (x,y) = translate x y $ color leafColor $ rectangleSolid leafSize leafSize
 
-nodeLink :: Point -> Point -> Picture
-nodeLink p1 p2 = line [p1,p2]
+treeNodeLink :: Point -> Point -> Picture
+treeNodeLink p1 p2 = line [p1,p2]
 
 cmdLegend :: Show a => Maybe (Command a) -> Picture
-cmdLegend cmd = translate (-30) y' $ scale 0.2 0.2 $ text (cmdText cmd)
+cmdLegend cmd = translate (-35) y' $ scale 0.2 0.2 $ text (cmdText cmd)
   where
     (_,y) = rootOrig
     y'    = y+nodeRadius+20 -- 20px above root node
@@ -128,9 +140,9 @@ drawTree orig tree prev = worker orig tree prev []
     worker pt (Node k h left right) (Just cmd) pics = edge1:edge2:worker ptLeft left prev pics'
       where
         (ptLeft,ptRight) = childOrig (Node k h left right) pt
-        edge1            = nodeLink pt ptLeft
-        edge2            = nodeLink pt ptRight
-        curNode          = nodeAt k pt (k == cmdKey cmd)
+        edge1            = treeNodeLink pt ptLeft
+        edge2            = treeNodeLink pt ptRight
+        curNode          = treeNodeAt k pt (k == cmdKey cmd)
         pics'            = curNode:worker ptRight right prev pics
 
 updateModel :: Ord a => ViewPort -> Float -> Model a -> Model a

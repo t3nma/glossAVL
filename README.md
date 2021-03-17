@@ -2,7 +2,7 @@
 
 Visualization of AVL Trees using Gloss.
 
-![GlossAVL GIF](https://media.giphy.com/media/UbvVZeD3ESd44O8eN3/giphy.gif)
+![GlossAVL GIF](https://media.giphy.com/media/cChJPFbarNFSvdHwGs/giphy.gif)
 
 ## Example
 
@@ -20,7 +20,7 @@ To compile and run this project you'll need [stack](https://docs.haskellstack.or
 ```
 $ stack setup
 $ stack build
-$ stack exec glossAVL-exe < example.in
+$ stack exec glossAVL-exe < test/tree.in
 ```
 
 ## Input format
@@ -43,3 +43,5 @@ Below an example of valid input for a model of type `Int`:
 +80
 -50
 ```
+
+You can find input examples for bigger trees in `test/`.
