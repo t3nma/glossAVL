@@ -1,9 +1,9 @@
 name:                glossAVL
 version:             0.1.0.0
-github:              "t3m,a/glossAVL"
+github:              "t3nma/glossAVL"
 license:             BSD3
 author:              "Bruno Casteleiro"
-maintainer:          "example@example.com"
+maintainer:          "up201505347@edu.fc.up.pt"
 copyright:           "2021 Bruno Casteleiro"
 
 extra-source-files:
